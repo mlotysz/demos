@@ -1,0 +1,205 @@
+#+Title: Elasticsearch, Logstash, Kibana (ELK demo)
+#+Author: Maciej Łotysz
+#+Email: maciej.lotysz@intive.com
+
+#+OPTIONS: toc:nil num:nil
+#+OPTIONS: reveal_center:t
+#+OPTIONS: reveal_rolling_links:t reveal_keyboard:t reveal_overview:t
+#+REVEAL_TRANS: linear
+#+REVEAL_THEME: black
+#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="Elasticsearch, Logstash, Kibana (ELK demo)">
+
+* Install
+
+- [[https://docs.docker.com/engine/installation/][Install docker]]
+- [[https://docs.docker.com/compose/install/][Install docker-compose]]
+- Create working directory for demo and sample data
+
+  #+begin_src sh
+  mkdir -p ~/elk/sample
+  #+end_src
+- [[https://github.com/deviantony/docker-elk/tree/x-pack][Clone ELK + x-pack from git repository]]
+
+    #+begin_src sh
+    git clone --depth 1 git@github.com:deviantony/docker-elk.git ~/elk/docker
+    git checkout x-pack
+    #+end_src
+
+* Manage dockerized ELK instances
+** Start
+
+#+begin_src sh
+cd ~/elk/docker &&
+    docker-compose up -d
+#+end_src
+
+** Stop but not destroy data
+
+#+begin_src sh
+cd ~/elk/docker &&
+    docker-compose stop
+#+end_src
+
+** Start fresh
+
+- stop first
+- remove
+
+#+begin_src sh
+cd ~/elk/docker &&
+    docker-compose rm
+#+end_src
+
+** Check status
+
+#+begin_src sh
+cd ~/elk/docker &&
+    docker-compose ps
+#+end_src
+
+* Elastic search and Kibana
+** Pump some data to ES
+*** Download 
+
+Get sample data in JSONP format from site: [[https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html][Tutorial]] and put it and/or unzip it
+in ~/elk/sample.
+
+*** Define schema for shakespeare data set
+
+[[https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html][Tutorial]]
+
+#+begin_src sh
+curl -XPUT -u elastic:changeme \
+     'localhost:9200/shakespeare?pretty' \
+     -H 'Content-Type: application/json' -d'
+{
+ "mappings" : {
+  "_default_" : {
+   "properties" : {
+    "speaker" : {"type": "keyword" },
+    "play_name" : {"type": "keyword" },
+    "line_id" : { "type" : "integer" },
+    "speech_number" : { "type" : "integer" }
+   }}}}'
+#+end_src
+
+keyword - not analyzed
+
+*** Define schema for logs data set - 2015.05.18
+
+#+begin_src sh
+curl -XPUT -u elastic:changeme \
+     'localhost:9200/logstash-2015.05.18?pretty' \
+     -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }}}}}}}'
+#+end_src
+
+*** Define schema for logs data set - 2015.05.19
+
+#+begin_src sh
+curl -XPUT -u elastic:changeme \
+     'localhost:9200/logstash-2015.05.19?pretty' \
+     -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }}}}}}}'
+#+end_src
+
+*** Define schema for logs data set - 2015.05.20
+
+#+begin_src sh
+curl -XPUT -u elastic:changeme \
+     'localhost:9200/logstash-2015.05.20?pretty' \
+     -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }}}}}}} '
+
+#+end_src
+
+*** Loading bulk bank accounts data
+
+Note: no schema is required
+
+#+begin_src sh
+cd ~/elk/sample &&
+    curl -u elastic:changeme \
+         -H 'Content-Type: application/x-ndjson' -XPOST \
+         'localhost:9200/bank/account/_bulk?pretty' \
+         --data-binary @accounts.json
+#+end_src
+
+*** Loading shakespeare data
+
+#+begin_src sh
+cd ~/elk/sample && \
+    curl -u elastic:changeme \
+         -H 'Content-Type: application/x-ndjson' \
+         -XPOST 'localhost:9200/shakespeare/_bulk?pretty' \
+         --data-binary @shakespeare.json
+#+end_src
+
+*** Loading logs data
+
+#+begin_src sh
+cd ~/elk/sample && \
+    curl -u elastic:changeme \
+         -H 'Content-Type: application/x-ndjson' \
+         -XPOST 'localhost:9200/_bulk?pretty' \
+         --data-binary @logs.jsonl
+#+end_src
+
+*** Cope with java.lang.OutOfMemoryError: Java heap space
+
+Workaround: [[https://github.com/deviantony/docker-elk/tree/x-pack#how-can-i-specify-the-amount-of-memory-used-by-a-service][Increase JVM -Xmx (RAM) for elastic to 1 GB (was 256 MB).]]
+
+*** Verify indices state
+
+#+begin_src sh
+curl -XGET -u elastic:changeme \
+     'localhost:9200/_cat/indices?v&pretty'
+#+end_src
+
+** Defining index patterns
+
+[[http://localhost:5601][Open kibana]]
+
+Define indices:
+- logstash-* (with time series), use @timestamp as time series field
+- ba* and shakes* not contain time series
+
+** Discovering and visualizing
+
+- check out [[https://www.youtube.com/playlist?list=PLWOeloPQaz1C91x7ioqFO8SnaV7xNFvjo][great introductory videos by Tim Roes on youtube]]
+
+* References
+
+- [[https://www.elastic.co/products/elasticsearch][Elasticsearch home]]
+- [[https://www.elastic.co/products/x-pack][Manage ES cluster by X-Pack extension]]
+- [[https://www.elastic.co/guide/en/kibana/current/index.html][Kibana official guide]]
+- [[https://github.com/deviantony/docker-elk/wiki/Elasticsearch-cluster][Add some ES replicas - scaling (for adventurous)]]
+- [[https://github.com/deviantony/docker-elk/tree/x-pack][Dockerized ELK documentation]]
+
+* Thank you!
+
+ _Have fun!_

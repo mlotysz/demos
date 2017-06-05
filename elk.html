@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Elasticsearch, Logstash, Kibana (ELK demo)</title>
+<meta name="author" content="(Maciej Łotysz)"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="./css/reveal.css"/>
+
+<link rel="stylesheet" href="./css/theme/black.css" id="theme"/>
+
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = './css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+<meta name="description" content="Elasticsearch, Logstash, Kibana (ELK demo)">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide"><h1 class="title">Elasticsearch, Logstash, Kibana (ELK demo)</h1><h2 class="author">Maciej Łotysz</h2><p class="date">Created: 2017-06-05 Mon 14:38</p>
+</section>
+
+<section>
+<section id="slide-org95b1c4c">
+<h2 id="org95b1c4c">Install</h2>
+<ul>
+<li><a href="https://docs.docker.com/engine/installation/">Install docker</a></li>
+<li><a href="https://docs.docker.com/compose/install/">Install docker-compose</a></li>
+<li><p>
+Create working directory for demo and sample data
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">mkdir -p ~/elk/sample
+</pre>
+</div></li>
+<li><p>
+<a href="https://github.com/deviantony/docker-elk/tree/x-pack">Clone ELK + x-pack from git repository</a>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">git clone --depth <span style="color: #a45bad;">1</span> git@github.com:deviantony/docker-elk.git ~/elk/docker
+git checkout x-pack
+</pre>
+</div></li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-org5eaf6dc">
+<h2 id="org5eaf6dc">Manage dockerized ELK instances</h2>
+<div class="outline-text-2" id="text-org5eaf6dc">
+</div></section>
+<section id="slide-org4721ced">
+<h3 id="org4721ced">Start</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #4f97d7;">cd</span> ~/elk/docker &amp;&amp;
+    docker-compose up -d
+</pre>
+</div>
+
+</section>
+<section id="slide-orga472b12">
+<h3 id="orga472b12">Stop but not destroy data</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #4f97d7;">cd</span> ~/elk/docker &amp;&amp;
+    docker-compose stop
+</pre>
+</div>
+
+</section>
+<section id="slide-orge974d30">
+<h3 id="orge974d30">Start fresh</h3>
+<ul>
+<li>stop first</li>
+<li>remove</li>
+
+</ul>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #4f97d7;">cd</span> ~/elk/docker &amp;&amp;
+    docker-compose rm
+</pre>
+</div>
+
+</section>
+<section id="slide-org72a7f33">
+<h3 id="org72a7f33">Check status</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #4f97d7;">cd</span> ~/elk/docker &amp;&amp;
+    docker-compose ps
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-orgb1c03d0">
+<h2 id="orgb1c03d0">Elastic search and Kibana</h2>
+<div class="outline-text-2" id="text-orgb1c03d0">
+</div></section>
+<section id="slide-org4d13e95">
+<h3 id="org4d13e95">Pump some data to ES</h3>
+<div class="outline-text-3" id="text-org4d13e95">
+</div></section>
+<section id="slide-org5861836">
+<h4 id="org5861836">Download</h4>
+<p>
+Get sample data in JSONP format from site: <a href="https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html">Tutorial</a> and put it and/or unzip it
+in ~/elk/sample.
+</p>
+
+</section>
+<section id="slide-orgfaf6855">
+<h4 id="orgfaf6855">Define schema for shakespeare data set</h4>
+<p>
+<a href="https://www.elastic.co/guide/en/kibana/current/tutorial-load-dataset.html">Tutorial</a>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">curl -XPUT -u elastic:changeme <span style="color: #2d9574;">\</span>
+     <span style="color: #2d9574;">'localhost:9200/shakespeare?pretty'</span> <span style="color: #2d9574;">\</span>
+     -H <span style="color: #2d9574;">'Content-Type: application/json'</span> -d<span style="color: #2d9574;">'</span>
+<span style="color: #2d9574;">{</span>
+<span style="color: #2d9574;"> "mappings" : {</span>
+<span style="color: #2d9574;">  "_default_" : {</span>
+<span style="color: #2d9574;">   "properties" : {</span>
+<span style="color: #2d9574;">    "speaker" : {"type": "keyword" },</span>
+<span style="color: #2d9574;">    "play_name" : {"type": "keyword" },</span>
+<span style="color: #2d9574;">    "line_id" : { "type" : "integer" },</span>
+<span style="color: #2d9574;">    "speech_number" : { "type" : "integer" }</span>
+<span style="color: #2d9574;">   }}}}'</span>
+</pre>
+</div>
+
+<p>
+keyword - not analyzed
+</p>
+
+</section>
+<section id="slide-org2000815">
+<h4 id="org2000815">Define schema for logs data set - 2015.05.18</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh">curl -XPUT -u elastic:changeme <span style="color: #2d9574;">\</span>
+     <span style="color: #2d9574;">'localhost:9200/logstash-2015.05.18?pretty'</span> <span style="color: #2d9574;">\</span>
+     -H <span style="color: #2d9574;">'Content-Type: application/json'</span> -d<span style="color: #2d9574;">'</span>
+<span style="color: #2d9574;">{</span>
+<span style="color: #2d9574;">  "mappings": {</span>
+<span style="color: #2d9574;">    "log": {</span>
+<span style="color: #2d9574;">      "properties": {</span>
+<span style="color: #2d9574;">        "geo": {</span>
+<span style="color: #2d9574;">          "properties": {</span>
+<span style="color: #2d9574;">            "coordinates": {</span>
+<span style="color: #2d9574;">              "type": "geo_point"</span>
+<span style="color: #2d9574;">            }}}}}}}'</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgc634258">
+<h4 id="orgc634258">Define schema for logs data set - 2015.05.19</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh">curl -XPUT -u elastic:changeme <span style="color: #2d9574;">\</span>
+     <span style="color: #2d9574;">'localhost:9200/logstash-2015.05.19?pretty'</span> <span style="color: #2d9574;">\</span>
+     -H <span style="color: #2d9574;">'Content-Type: application/json'</span> -d<span style="color: #2d9574;">'</span>
+<span style="color: #2d9574;">{</span>
+<span style="color: #2d9574;">  "mappings": {</span>
+<span style="color: #2d9574;">    "log": {</span>
+<span style="color: #2d9574;">      "properties": {</span>
+<span style="color: #2d9574;">        "geo": {</span>
+<span style="color: #2d9574;">          "properties": {</span>
+<span style="color: #2d9574;">            "coordinates": {</span>
+<span style="color: #2d9574;">              "type": "geo_point"</span>
+<span style="color: #2d9574;">            }}}}}}}'</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-org0f6f8fb">
+<h4 id="org0f6f8fb">Define schema for logs data set - 2015.05.20</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh">curl -XPUT -u elastic:changeme <span style="color: #2d9574;">\</span>
+     <span style="color: #2d9574;">'localhost:9200/logstash-2015.05.20?pretty'</span> <span style="color: #2d9574;">\</span>
+     -H <span style="color: #2d9574;">'Content-Type: application/json'</span> -d<span style="color: #2d9574;">'</span>
+<span style="color: #2d9574;">{</span>
+<span style="color: #2d9574;">  "mappings": {</span>
+<span style="color: #2d9574;">    "log": {</span>
+<span style="color: #2d9574;">      "properties": {</span>
+<span style="color: #2d9574;">        "geo": {</span>
+<span style="color: #2d9574;">          "properties": {</span>
+<span style="color: #2d9574;">            "coordinates": {</span>
+<span style="color: #2d9574;">              "type": "geo_point"</span>
+<span style="color: #2d9574;">            }}}}}}} '</span>
+
+</pre>
+</div>
+
+</section>
+<section id="slide-org2b3f321">
+<h4 id="org2b3f321">Loading bulk bank accounts data</h4>
+<p>
+Note: no schema is required
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #4f97d7;">cd</span> ~/elk/sample &amp;&amp;
+    curl -u elastic:changeme <span style="color: #2d9574;">\</span>
+         -H <span style="color: #2d9574;">'Content-Type: application/x-ndjson'</span> -XPOST <span style="color: #2d9574;">\</span>
+         <span style="color: #2d9574;">'localhost:9200/bank/account/_bulk?pretty'</span> <span style="color: #2d9574;">\</span>
+         --data-binary @accounts.json
+</pre>
+</div>
+
+</section>
+<section id="slide-org167769c">
+<h4 id="org167769c">Loading shakespeare data</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #4f97d7;">cd</span> ~/elk/sample &amp;&amp; <span style="color: #2d9574;">\</span>
+    curl -u elastic:changeme <span style="color: #2d9574;">\</span>
+         -H <span style="color: #2d9574;">'Content-Type: application/x-ndjson'</span> <span style="color: #2d9574;">\</span>
+         -XPOST <span style="color: #2d9574;">'localhost:9200/shakespeare/_bulk?pretty'</span> <span style="color: #2d9574;">\</span>
+         --data-binary @shakespeare.json
+</pre>
+</div>
+
+</section>
+<section id="slide-org6269d67">
+<h4 id="org6269d67">Loading logs data</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #4f97d7;">cd</span> ~/elk/sample &amp;&amp; <span style="color: #2d9574;">\</span>
+    curl -u elastic:changeme <span style="color: #2d9574;">\</span>
+         -H <span style="color: #2d9574;">'Content-Type: application/x-ndjson'</span> <span style="color: #2d9574;">\</span>
+         -XPOST <span style="color: #2d9574;">'localhost:9200/_bulk?pretty'</span> <span style="color: #2d9574;">\</span>
+         --data-binary @logs.jsonl
+</pre>
+</div>
+
+</section>
+<section id="slide-org8011bd3">
+<h4 id="org8011bd3">Cope with java.lang.OutOfMemoryError: Java heap space</h4>
+<p>
+Workaround: <a href="https://github.com/deviantony/docker-elk/tree/x-pack#how-can-i-specify-the-amount-of-memory-used-by-a-service">Increase JVM -Xmx (RAM) for elastic to 1 GB (was 256 MB).</a>
+</p>
+
+</section>
+<section id="slide-org8d88e81">
+<h4 id="org8d88e81">Verify indices state</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh">curl -XGET -u elastic:changeme <span style="color: #2d9574;">\</span>
+     <span style="color: #2d9574;">'localhost:9200/_cat/indices?v&amp;pretty'</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orged118ae">
+<h3 id="orged118ae">Defining index patterns</h3>
+<p>
+<a href="http://localhost:5601">Open kibana</a>
+</p>
+
+<p>
+Define indices:
+</p>
+<ul>
+<li>logstash-* (with time series), use @timestamp as time series field</li>
+<li>ba* and shakes* not contain time series</li>
+
+</ul>
+
+</section>
+<section id="slide-org88cff4b">
+<h3 id="org88cff4b">Discovering and visualizing</h3>
+<ul>
+<li>check out <a href="https://www.youtube.com/playlist?list=PLWOeloPQaz1C91x7ioqFO8SnaV7xNFvjo">great introductory videos by Tim Roes on youtube</a></li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-org1932589">
+<h2 id="org1932589">References</h2>
+<ul>
+<li><a href="https://www.elastic.co/products/elasticsearch">Elasticsearch home</a></li>
+<li><a href="https://www.elastic.co/products/x-pack">Manage ES cluster by X-Pack extension</a></li>
+<li><a href="https://www.elastic.co/guide/en/kibana/current/index.html">Kibana official guide</a></li>
+<li><a href="https://github.com/deviantony/docker-elk/wiki/Elasticsearch-cluster">Add some ES replicas - scaling (for adventurous)</a></li>
+<li><a href="https://github.com/deviantony/docker-elk/tree/x-pack">Dockerized ELK documentation</a></li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-org9dd0653">
+<h2 id="org9dd0653">Thank you!</h2>
+<p>
+<span class="underline">Have fun!</span>
+</p>
+</section>
+</section>
+</div>
+</div>
+<script src="./lib/js/head.min.js"></script>
+<script src="./js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: true,
+keyboard: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: './lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: './plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: './plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+#+Title: Grafana and TICK stack demo
+#+Author: Maciej Łotysz
+#+Email: maciej.lotysz@intive.com
+
+#+OPTIONS: toc:nil num:nil
+#+OPTIONS: reveal_center:t
+#+OPTIONS: reveal_rolling_links:t reveal_keyboard:t reveal_overview:t
+#+REVEAL_TRANS: linear
+#+REVEAL_THEME: black
+#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="Grafana and TICK stack demo">
+
+* What is this?
+
+Some slides to guide workshop for TICK stack and Grafana demo.
+
+* Setup developer environment
+** Install docker
+
+- [[https://docs.docker.com/engine/installation/][Install docker]]
+- [[https://docs.docker.com/compose/install/][Install docker-compose]]
+
+** Pull TICK docker images
+
+[[https://github.com/influxdata/TICK-docker][TICK docker repository]]
+
+#+begin_src sh
+mkdir -p ~/influxdb && \
+    cd ~/influxdb && \
+    git clone git@github.com:influxdata/TICK-docker.git docker
+#+end_src
+
+** Add grafana to docker-compose.yml
+
+#+begin_src sh
+nano ~/influxdb/docker/1.2/docker-compose.yml
+#+end_src
+
+#+begin_src sh
+grafana:
+  image: grafana/grafana
+  ports:
+    - "3000:3000"
+  links:
+    - influxdb
+#+end_src
+
+** Download it and run
+#+begin_src sh
+cd ~/influxdb/docker/1.2 && \
+    docker-compose up -d
+#+end_src
+
+* InfluxDB
+
+It is an open source, distributed time series database. It is written in Go and
+optimized for fast, high-availability storage and retrieval of time series data
+in fields such as operations monitoring, application metrics, Internet of Things
+sensor data, and real-time analytics.
+
+** TICK stack
+
+- [[https://portal.influxdata.com/downloads][In a glance]]
+- [[https://www.influxdata.com/products/editions/][Falvours]]
+
+*** Kapacitor
+
+Kapacitor is an open source data processing framework that makes it easy to
+create alerts, run ETL jobs and detect anomalies. Kapacitor is the final piece
+of the TICK stack.
+
+[[https://docs.influxdata.com/kapacitor/v1.3/][More...]]
+
+*** Chronograf
+
+Chronograf is InfluxData’s open source web application. Use Chronograf with the
+other components of the TICK stack to visualize your monitoring data and easily
+create alerting and automation rules.
+
+[[https://docs.influxdata.com/chronograf/v1.3/][More...]]
+
+
+** Why influxdb?
+
+Because of features!
+
+*** outstanding query performance
+*** [[https://docs.influxdata.com/influxdb/v1.2/concepts/storage_engine/][storage designed to persist time series]]
+*** retention and continuous query 
+
+Continuous Queries (CQ) are InfluxQL queries that run automatically and
+periodically on realtime data and store query results in a specified
+measurement.
+
+Could be done with engine or [[https://docs.influxdata.com/kapacitor/v1.2/examples/continuous_queries/][Kapacitor]]
+
+*** BUT [[https://www.influxdata.com/update-on-influxdb-clustering-high-availability-and-monetization/][clustering is paid]] 
+  with [[https://github.com/influxdata/influxdb-relay][some hope or troublesome option]]
+
+** Key concepts
+
+- [[https://docs.influxdata.com/influxdb/v1.2/concepts/key_concepts/][Use documentation luke!]]
+- [[https://docs.influxdata.com/influxdb/v1.2/introduction/getting_started/][Getting started]]
+
+** Manage (basic)
+
+- [[http://localhost:8888/sources/0/hosts][Chronograf - part of TICK stack]]
+- [[http://localhost:8083][Visit admin UI (deprecated!)]] and use query templates
+- use influxdb client (CLI)
+- use HTTP
+  #+begin_src sh
+  curl -G \
+       http://localhost:8086/query?q=CREATE+DATABASE+%22test3%22
+  #+end_src
+
+** Insert some data
+- [[https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_tutorial/][Line protocol]]
+- UDP
+- opentsdb
+- collectd
+- Graphite - must be enabled
+  Hint: -e INFLUXDB_GRAPHITE_ENABLED=true
+
+** Common use case
+
+To monitor host resources.
+Use Telegraf, [[https://github.com/influxdata/telegraf][metrics collector written in Go]] and Chronograf.
+
+* Grafana
+
+Grafana is a data visualization tool that provides ways to create, explore, and
+share data in easy to understand graphical representation. It's mainly used to
+visualize time series data. It supports Graphite, ElasticSearch, Prometheus,
+InfluxDB, OpenTSDB, and KairosDB.
+
+[[http://play.grafana.org/dashboard/db/grafana-play-home?orgId=1][Play...]]
+
+** Create sample graphs
+
+[[http://localhost:3000][Grafana on docker]]
+
+** Sample plugins
+
+- [[https://grafana.com/plugins/vonage-status-panel][Status]]
+- [[https://grafana.com/plugins/neocat-cal-heatmap-panel][Heat map]]
+- [[https://grafana.com/plugins/jdbranham-diagram-panel][Diagram]]
+
+** Lets reuse existing templates!
+
+- [[https://grafana.com/dashboards/61][Download JSON Telegraf dashboard]]
+- import it into grafana - done.
+- [[https://grafana.com/dashboards][Entities are sharing]]
+
+* Monitoring Java based systems
+
+Use capsaicin (jolokia)
+
+[[https://jolokia.org/][Jolokia home page]]
+
+** Spring-boot
+
+[[https://stackoverflow.com/a/42546121][Hey mum, see no codin'!]]
+
+* References
+- [[https://www.youtube.com/watch?v=d99oCnOyA4k][InfluxDB schema design]]
+- [[https://www.youtube.com/watch?v=qeg2jwpWhPU][InfluxDb vs ES]]
+- [[https://www.youtube.com/watch?v=N7JtXI67wVc][InfluxDb vs casaandra]]
+- [[https://github.com/nicolargo/docker-influxdb-grafana][Easy developer setup for experiments]]
+- [[https://hub.docker.com/_/influxdb/][Official docker image for influxdb]]
+- [[https://docs.influxdata.com/chronograf/v1.3/][Chronograf documentation]]
+- [[https://logz.io/blog/grafana-vs-kibana/][Kibana vs Grafana]]
+
+* Thank you!
+Have fun!

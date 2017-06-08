@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Grafana and TICK stack demo</title>
+<meta name="author" content="(Maciej Łotysz)"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="./css/reveal.css"/>
+
+<link rel="stylesheet" href="./css/theme/black.css" id="theme"/>
+
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = './css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+<meta name="description" content="Grafana and TICK stack demo">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide"><h1 class="title">Grafana and TICK stack demo</h1><h2 class="author">Maciej Łotysz</h2><p class="date">Created: 2017-06-08 Thu 13:50</p>
+</section>
+
+<section>
+<section id="slide-org6195d3d">
+<h2 id="org6195d3d">What is this?</h2>
+<p>
+Some slides to guide workshop for TICK stack and Grafana demo.
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-org53dd866">
+<h2 id="org53dd866">Setup developer environment</h2>
+<div class="outline-text-2" id="text-org53dd866">
+</div></section>
+<section id="slide-org3980021">
+<h3 id="org3980021">Install docker</h3>
+<ul>
+<li><a href="https://docs.docker.com/engine/installation/">Install docker</a></li>
+<li><a href="https://docs.docker.com/compose/install/">Install docker-compose</a></li>
+
+</ul>
+
+</section>
+<section id="slide-orgcbcc001">
+<h3 id="orgcbcc001">Pull TICK docker images</h3>
+<p>
+<a href="https://github.com/influxdata/TICK-docker">TICK docker repository</a>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">mkdir -p ~/influxdb &amp;&amp; <span style="color: #2d9574;">\</span>
+    <span style="color: #4f97d7;">cd</span> ~/influxdb &amp;&amp; <span style="color: #2d9574;">\</span>
+    git clone git@github.com:influxdata/TICK-docker.git docker
+</pre>
+</div>
+
+</section>
+<section id="slide-org8e9d626">
+<h3 id="org8e9d626">Add grafana to docker-compose.yml</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sh">nano ~/influxdb/docker/1.2/docker-compose.yml
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">grafana:
+  image: grafana/grafana
+  ports:
+    - <span style="color: #2d9574;">"3000:3000"</span>
+  links:
+    - influxdb
+</pre>
+</div>
+
+</section>
+<section id="slide-orgb53e8f0">
+<h3 id="orgb53e8f0">Download it and run</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #4f97d7;">cd</span> ~/influxdb/docker/1.2 &amp;&amp; <span style="color: #2d9574;">\</span>
+    docker-compose up -d
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-orgfc6dbb1">
+<h2 id="orgfc6dbb1">InfluxDB</h2>
+<p>
+It is an open source, distributed time series database. It is written in Go and
+optimized for fast, high-availability storage and retrieval of time series data
+in fields such as operations monitoring, application metrics, Internet of Things
+sensor data, and real-time analytics.
+</p>
+
+</section>
+<section id="slide-orgb18eb41">
+<h3 id="orgb18eb41">TICK stack</h3>
+<ul>
+<li><a href="https://portal.influxdata.com/downloads">In a glance</a></li>
+<li><a href="https://www.influxdata.com/products/editions/">Falvours</a></li>
+
+</ul>
+
+</section>
+<section id="slide-org0b2dd5a">
+<h4 id="org0b2dd5a">Kapacitor</h4>
+<p>
+Kapacitor is an open source data processing framework that makes it easy to
+create alerts, run ETL jobs and detect anomalies. Kapacitor is the final piece
+of the TICK stack.
+</p>
+
+<p>
+<a href="https://docs.influxdata.com/kapacitor/v1.3/">More&#x2026;</a>
+</p>
+
+</section>
+<section id="slide-org9d09cea">
+<h4 id="org9d09cea">Chronograf</h4>
+<p>
+Chronograf is InfluxData’s open source web application. Use Chronograf with the
+other components of the TICK stack to visualize your monitoring data and easily
+create alerting and automation rules.
+</p>
+
+<p>
+<a href="https://docs.influxdata.com/chronograf/v1.3/">More&#x2026;</a>
+</p>
+
+
+</section>
+<section id="slide-org9ac6c18">
+<h3 id="org9ac6c18">Why influxdb?</h3>
+<p>
+Because of features!
+</p>
+
+</section>
+<section id="slide-orgbe65b5f">
+<h4 id="orgbe65b5f">outstanding query performance</h4>
+</section>
+<section id="slide-orgc9bada7">
+<h4 id="orgc9bada7"><a href="https://docs.influxdata.com/influxdb/v1.2/concepts/storage_engine/">storage designed to persist time series</a></h4>
+</section>
+<section id="slide-org520a07b">
+<h4 id="org520a07b">retention and continuous query</h4>
+<p>
+Continuous Queries (CQ) are InfluxQL queries that run automatically and
+periodically on realtime data and store query results in a specified
+measurement.
+</p>
+
+<p>
+Could be done with engine or <a href="https://docs.influxdata.com/kapacitor/v1.2/examples/continuous_queries/">Kapacitor</a>
+</p>
+
+</section>
+<section id="slide-org1734b27">
+<h4 id="org1734b27">BUT <a href="https://www.influxdata.com/update-on-influxdb-clustering-high-availability-and-monetization/">clustering is paid</a></h4>
+<p>
+with <a href="https://github.com/influxdata/influxdb-relay">some hope or troublesome option</a>
+</p>
+
+</section>
+<section id="slide-orgd97c03e">
+<h3 id="orgd97c03e">Key concepts</h3>
+<ul>
+<li><a href="https://docs.influxdata.com/influxdb/v1.2/concepts/key_concepts/">Use documentation luke!</a></li>
+<li><a href="https://docs.influxdata.com/influxdb/v1.2/introduction/getting_started/">Getting started</a></li>
+
+</ul>
+
+</section>
+<section id="slide-org8d65caa">
+<h3 id="org8d65caa">Manage (basic)</h3>
+<ul>
+<li><a href="http://localhost:8888/sources/0/hosts">Chronograf - part of TICK stack</a></li>
+<li><a href="http://localhost:8083">Visit admin UI (deprecated!)</a> and use query templates</li>
+<li>use influxdb client (CLI)</li>
+<li><p>
+use HTTP
+</p>
+<div class="org-src-container">
+
+<pre  class="src src-sh">curl -G <span style="color: #2d9574;">\</span>
+     http://localhost:8086/query?<span style="color: #7590db;">q</span>=CREATE+DATABASE+%22test3%22
+</pre>
+</div></li>
+
+</ul>
+
+</section>
+<section id="slide-org808f75e">
+<h3 id="org808f75e">Insert some data</h3>
+<ul>
+<li><a href="https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_tutorial/">Line protocol</a></li>
+<li>UDP</li>
+<li>opentsdb</li>
+<li>collectd</li>
+<li>Graphite - must be enabled
+Hint: -e INFLUXDB<sub>GRAPHITE</sub><sub>ENABLED</sub>=true</li>
+
+</ul>
+
+</section>
+<section id="slide-org8f8fce6">
+<h3 id="org8f8fce6">Common use case</h3>
+<p>
+To monitor host resources.
+Use Telegraf, <a href="https://github.com/influxdata/telegraf">metrics collector written in Go</a> and Chronograf.
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-org86cdd8d">
+<h2 id="org86cdd8d">Grafana</h2>
+<p>
+Grafana is a data visualization tool that provides ways to create, explore, and
+share data in easy to understand graphical representation. It's mainly used to
+visualize time series data. It supports Graphite, ElasticSearch, Prometheus,
+InfluxDB, OpenTSDB, and KairosDB.
+</p>
+
+<p>
+<a href="http://play.grafana.org/dashboard/db/grafana-play-home?orgId=1">Play&#x2026;</a>
+</p>
+
+</section>
+<section id="slide-orgeefb13f">
+<h3 id="orgeefb13f">Create sample graphs</h3>
+<p>
+<a href="http://localhost:3000">Grafana on docker</a>
+</p>
+
+</section>
+<section id="slide-org92c3ae1">
+<h3 id="org92c3ae1">Sample plugins</h3>
+<ul>
+<li><a href="https://grafana.com/plugins/vonage-status-panel">Status</a></li>
+<li><a href="https://grafana.com/plugins/neocat-cal-heatmap-panel">Heat map</a></li>
+<li><a href="https://grafana.com/plugins/jdbranham-diagram-panel">Diagram</a></li>
+
+</ul>
+
+</section>
+<section id="slide-org005744e">
+<h3 id="org005744e">Lets reuse existing templates!</h3>
+<ul>
+<li><a href="https://grafana.com/dashboards/61">Download JSON Telegraf dashboard</a></li>
+<li>import it into grafana - done.</li>
+<li><a href="https://grafana.com/dashboards">Entities are sharing</a></li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-orge0c8fa5">
+<h2 id="orge0c8fa5">Monitoring Java based systems</h2>
+<p>
+Use capsaicin (jolokia)
+</p>
+
+<p>
+<a href="https://jolokia.org/">Jolokia home page</a>
+</p>
+
+</section>
+<section id="slide-org2a4c553">
+<h3 id="org2a4c553">Spring-boot</h3>
+<p>
+<a href="https://stackoverflow.com/a/42546121">Hey mum, see no codin'!</a>
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-org4f4e0b9">
+<h2 id="org4f4e0b9">References</h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=d99oCnOyA4k">InfluxDB schema design</a></li>
+<li><a href="https://www.youtube.com/watch?v=qeg2jwpWhPU">InfluxDb vs ES</a></li>
+<li><a href="https://www.youtube.com/watch?v=N7JtXI67wVc">InfluxDb vs casaandra</a></li>
+<li><a href="https://github.com/nicolargo/docker-influxdb-grafana">Easy developer setup for experiments</a></li>
+<li><a href="https://hub.docker.com/_/influxdb/">Official docker image for influxdb</a></li>
+<li><a href="https://docs.influxdata.com/chronograf/v1.3/">Chronograf documentation</a></li>
+<li><a href="https://logz.io/blog/grafana-vs-kibana/">Kibana vs Grafana</a></li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-org931e241">
+<h2 id="org931e241">Thank you!</h2>
+<p>
+Have fun!
+</p>
+</section>
+</section>
+</div>
+</div>
+<script src="./lib/js/head.min.js"></script>
+<script src="./js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: true,
+keyboard: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: './lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: './plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: './plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+});
+</script>
+</body>
+</html>
